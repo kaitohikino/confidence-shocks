@@ -16,6 +16,8 @@ class Config:
     competitions: list[dict[str, str]]
     window_minutes: float = 15.0
     controls: str = "on_target"
+    method: str = "ancova"  # ancova (adjust for the before-shot level) | change (after - before)
+    max_smd: float = 0.1  # balance gate: largest allowed standardised difference before the shot
     n_boot: int = 2000
     seed: int = 0
     data_dir: Path = ROOT / "data"

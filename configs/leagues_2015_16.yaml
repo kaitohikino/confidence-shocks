@@ -12,5 +12,7 @@ competitions:
 
 window_minutes: 15
 controls: on_target
+method: ancova
+max_smd: 0.1
 n_boot: 2000
 seed: 0

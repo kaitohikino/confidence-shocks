@@ -19,7 +19,7 @@ The order matters: the simple, well-identified design comes first, and the machi
 - [ ] Add a validation step: the final `score_diff` reconstructed from events must equal `home_score - away_score` for every match. Log the exceptions
 - [ ] Sanity table: goals, shots and passes per match by league, compared with public figures
 
-**Deliverable:** `notebooks/01_data_audit.ipynb`. **Done when:** every ingested match passes validation or is listed as an exception.
+**Deliverable:** `notebooks/01_audit.ipynb` (score validation and sanity table are already in it). **Done when:** every ingested match passes validation or is listed as an exception.
 
 ## Phase 2 · Attributes (about 1 week)
 
@@ -32,20 +32,23 @@ The starting set is in `features.py`. Extend it, with a test for each addition:
 - [ ] Pass difficulty model (event-only expected pass completion), so "risk" is how hard the attempted passes were and execution is completion minus expected
 - [ ] Define one **choice index** and one **execution index** (standardised averages). These are the primary outcomes
 
-**Deliverable:** `notebooks/02_attributes.ipynb` showing distributions by position. **Done when:** the indices are fixed in `docs/analysis_plan.md`.
+**Deliverable:** `notebooks/04_attributes.ipynb` showing distributions by position. **Done when:** the indices are fixed in `docs/analysis_plan.md`.
 
 ## Phase 3 · Main estimate (about 1 week)
 
 - [ ] Freeze `docs/analysis_plan.md` and commit it **before** running on the league data
 - [ ] `make all CONFIG=configs/leagues_2015_16.yaml`
-- [ ] Read `balance.csv` first. If pre-shot quantities differ between goals and controls, fix the comparison before looking at results
+- [ ] Read `checks.csv` first (balance and placebo). If a check fails, understand why before looking at results
+- [ ] `notebooks/02_shocks.ipynb` (event study around the shot) and `notebooks/03_results.ipynb`
 
 **Deliverable:** `reports/leagues_2015_16/`. **Done when:** the primary result is written up in three sentences, whatever it shows.
 
 ## Phase 4 · Robustness (1 to 2 weeks)
 
-- [ ] Window length: 5, 10, 20 minutes
-- [ ] Control group: `all`, `on_target`, `post`, `near_miss`
+- [ ] Window length: 5, 10, 20 minutes (code ready in `03_results`)
+- [ ] Control group: `all`, `on_target`, `post`, `near_miss` (code ready in `03_results`)
+- [ ] Estimator: `method: change` against `ancova`
+- [ ] Drop the first few minutes after the shot (celebration and kick-off)
 - [ ] Score state: level games only; leading versus trailing
 - [ ] Event-study plot in 5-minute bins, from 15 minutes before to 30 after
 - [ ] Placebo timing: fake "shots" at random times for the same players
@@ -53,7 +56,7 @@ The starting set is in `features.py`. Extend it, with a test for each addition:
 - [ ] Heterogeneity by position group, age and home/away
 - [ ] Next-match selection: did scorers get more minutes in the following match?
 
-**Deliverable:** `notebooks/03_robustness.ipynb` and a robustness table. **Done when:** the headline result is stable across these, or the write-up says clearly where it is not.
+**Deliverable:** control-group and window robustness are in `notebooks/03_results.ipynb`; the rest goes in `notebooks/05_robustness.ipynb`, with a robustness table. **Done when:** the headline result is stable across these, or the write-up says clearly where it is not.
 
 ## Phase 5 · Second sources (1 to 2 weeks)
 

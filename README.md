@@ -9,8 +9,8 @@ Confidence is never in the data, so this project looks for events that should sh
 ## Approach
 
 1. **A lottery.** Given a shot's expected-goals value (xG), whether it goes in is close to a weighted coin flip. Players who scored are compared with players whose similar shot was saved or hit the post.
-2. **A before/after comparison, net of teammates.** For each shot, the shooter's next 15 minutes are compared with his previous 15, and the same change among his teammates is subtracted. That removes what a new scoreline does to the whole team.
-3. **Honest uncertainty.** Intervals come from resampling whole matches, p-values are corrected for testing many attributes, and a placebo test checks that the two groups looked alike *before* the shot.
+2. **After the shot, net of teammates, adjusted for before.** For each shot, the shooter's next 15 minutes are measured relative to his teammates', which removes what a new scoreline does to the whole team. The comparison adjusts for his previous 15 minutes and his usual level, so a player who happened to be quiet before scoring is not mistaken for one whom scoring woke up (regression to the mean).
+3. **Honest uncertainty.** Intervals come from resampling whole matches, p-values are corrected for testing many attributes, and two checks run before any result is read: the groups must match on score and minute, and the same estimator run one window *before* the shot must find nothing.
 
 Details and the pre-specified analysis are in [`docs/analysis_plan.md`](docs/analysis_plan.md). Where the project is going is in [`docs/roadmap.md`](docs/roadmap.md).
 
@@ -30,7 +30,9 @@ make test       # runs on synthetic data, no download needed
 make all        # 2022 World Cup: download, build the shock table, estimate
 ```
 
-Outputs land in `reports/wc2022/`: `results.csv`, `balance.csv` and `forest.png`.
+Outputs land in `reports/wc2022/`: `checks.csv` (read this first), `results.csv`, `results_unadjusted.csv`, `balance.csv`, `placebo.csv` and `forest.png`.
+
+To explore interactively, run `uv run jupyter lab` and open the numbered notebooks: `01_audit`, `02_shocks`, `03_results`.
 
 The main analysis uses full league seasons, which is a larger download:
 
@@ -62,7 +64,7 @@ src/confidence_shocks/
     prep.py              raw events -> tidy events + on-pitch spans
     features.py          events -> choice and execution metrics
     shocks.py            one row per shot with before/after levels
-    estimate.py          weighted comparison, cluster bootstrap, FDR, placebo
+    estimate.py          weighted regression, cluster bootstrap, FDR, balance and placebo checks
     viz/plots.py         figures
     pipeline.py, cli.py  steps and command line
 tests/                   synthetic matches, no network

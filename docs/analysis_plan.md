@@ -26,11 +26,12 @@ One row per open-play shot (penalties excluded) where the shooter was on the pit
 
 - **Primary:** choice index and execution index (defined in Phase 2; record the exact formula here before running).
 - **Secondary:** every individual metric in `features.METRICS`.
-- Each outcome is the shooter's after-minus-before change, minus the same change for the average teammate.
+- Each outcome is the shooter's level in the window after the shot, minus the average teammate's level in the same window.
 
 ## Estimation and inference
 
-- Weighted difference in means, goals minus controls (`estimate.att`).
+- Weighted least squares of the outcome on a goal indicator and three before-shot covariates (`method: ancova`, `estimate.design` and `estimate.att`): the shooter's level in the window before the shot, the average teammate's level in that window, and the shooter's usual before-shot level in his other matches. Each covariate gets its own slope.
+- Why not after-minus-before changes: on the 2022 World Cup test run, scorers had been less involved than controls before the shot, and every change-score "effect" pointed the opposite way to that gap (correlation −0.96 across the nine metrics), the signature of regression to the mean. Change scores (`method: change`) are reported as a robustness check only.
 - 95% intervals from a bootstrap that resamples whole matches.
 - Secondary metrics: Benjamini-Hochberg q-values. A secondary finding is reported as a finding only if q < 0.05.
 - Window: 15 minutes each side.
@@ -41,8 +42,11 @@ One row per open-play shot (penalties excluded) where the shooter was on the pit
 
 ## Validity checks, run before reading results
 
-1. `balance.csv`: no pre-shot quantity differs between groups after weighting.
-2. Placebo timing: random fake shot times show no effect.
+Both are written to `checks.csv` by `make estimate`, and failures are flagged in the log and the figure title.
+
+1. **Balance:** score difference and match minute, which the estimator does not adjust for, differ by at most 0.1 SD between weighted groups (`max_smd`). Before-shot metric levels are reported in `balance.csv` for information; the estimator adjusts for them.
+2. **Placebo:** the same estimator, moved one window back (outcome: the window before the shot; covariates: the window before that), shows no effect with q < 0.05 on any metric. A failure means goals were not a pure coin flip given xG and recent form; it is reported, and the results are read with that caveat.
+3. Placebo timing (Phase 4): fake shot times for the same players show no effect.
 
 ## Planned robustness
 

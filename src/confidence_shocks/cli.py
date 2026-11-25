@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 import logging
 
+import pandas as pd
+
 from confidence_shocks import pipeline
 from confidence_shocks.config import ROOT, load_config
 
@@ -23,9 +25,14 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
-    result = STEPS[args.step](load_config(args.config))
+    cfg = load_config(args.config)
+    result = STEPS[args.step](cfg)
     if args.step in ("audit", "estimate"):
         print(result.round(3).to_string(index=False))
+    if args.step == "estimate":
+        checks = pd.read_csv(cfg.out_dir / "checks.csv")
+        print("\nChecks (read these first):")
+        print(checks.round(3).to_string(index=False))
 
 
 if __name__ == "__main__":

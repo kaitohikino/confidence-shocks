@@ -61,20 +61,38 @@ def shocks(cfg: Config) -> pd.DataFrame:
 
 
 def estimate(cfg: Config) -> pd.DataFrame:
-    """Write results.csv, balance.csv and the forest plot for this config."""
+    """Write results, the before-shot checks and the forest plot for this config.
+
+    Read `checks.csv` before `results.csv`: if a check fails, the comparison is not yet fair
+    and the results are flagged in the log and the figure title.
+    """
     table = pd.read_parquet(cfg.shocks_path)
     kwargs = {"controls": cfg.controls, "n_boot": cfg.n_boot, "seed": cfg.seed}
-    adjusted = est.estimate_all(table, adjust=True, **kwargs)
-    naive = est.estimate_all(table, adjust=False, **kwargs)
-    placebo = est.balance(table, **kwargs)
+    adjusted = est.estimate_all(table, adjust=True, method=cfg.method, **kwargs)
+    naive = est.estimate_all(table, adjust=False, method=cfg.method, **kwargs)
+    balance = est.balance(table, **kwargs)
+    placebo = est.placebo(table, adjust=True, method=cfg.method, **kwargs)
+    checks = est.checks(balance, placebo, cfg.max_smd)
 
     cfg.out_dir.mkdir(parents=True, exist_ok=True)
     adjusted.to_csv(cfg.out_dir / "results.csv", index=False)
     naive.to_csv(cfg.out_dir / "results_unadjusted.csv", index=False)
-    placebo.to_csv(cfg.out_dir / "balance.csv", index=False)
+    balance.to_csv(cfg.out_dir / "balance.csv", index=False)
+    placebo.to_csv(cfg.out_dir / "placebo.csv", index=False)
+    checks.to_csv(cfg.out_dir / "checks.csv", index=False)
 
-    title = f"{cfg.name}: {cfg.window_minutes:g} minutes after scoring (controls: {cfg.controls})"
+    failed = checks[~checks["passed"]]
+    for r in failed.itertuples():
+        log.warning(
+            "CHECK FAILED: %s on %s (value %.3f, rule %s)", r.check, r.quantity, r.value, r.rule
+        )
+    verdict = "checks passed" if failed.empty else f"{len(failed)} CHECKS FAILED"
+
+    title = (
+        f"{cfg.name}: {cfg.window_minutes:g} min after scoring "
+        f"(controls: {cfg.controls}, {cfg.method}; {verdict})"
+    )
     figure = forest({"shooter only": naive, "minus teammates": adjusted}, title)
     figure.savefig(cfg.out_dir / "forest.png", dpi=200)
-    log.info("estimate: wrote results, balance check and figure to %s", cfg.out_dir)
+    log.info("estimate: %s; wrote results, checks and figure to %s", verdict, cfg.out_dir)
     return adjusted

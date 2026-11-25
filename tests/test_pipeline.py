@@ -33,5 +33,16 @@ def test_ingest_shocks_estimate(cfg, fake_source):
     assert results["metric"].tolist() == METRICS
     assert results["q"].between(0, 1).all()
     assert (results["lo"] <= results["hi"]).all()
-    for name in ("results.csv", "results_unadjusted.csv", "balance.csv", "forest.png"):
+    outputs = ("results.csv", "results_unadjusted.csv", "balance.csv", "placebo.csv", "checks.csv")
+    for name in (*outputs, "forest.png"):
         assert (cfg.out_dir / name).exists()
+
+
+def test_change_method_still_runs(cfg, fake_source):
+    from dataclasses import replace
+
+    cfg = replace(cfg, method="change")
+    pipeline.ingest(cfg, source=fake_source)
+    pipeline.shocks(cfg)
+    results = pipeline.estimate(cfg)
+    assert results["effect"].notna().all()

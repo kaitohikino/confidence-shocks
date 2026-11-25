@@ -5,5 +5,7 @@ competitions:
 
 window_minutes: 15     # length of the before and after windows around each shot
 controls: on_target    # comparison group for goals: all | on_target | post | near_miss
+method: ancova         # ancova: adjust for the before-shot level | change: after minus before
+max_smd: 0.1           # balance gate on score difference and clock (standardised difference)
 n_boot: 2000           # match-level bootstrap replicates
 seed: 0

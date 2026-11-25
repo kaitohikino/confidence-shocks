@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 
+import numpy as np
 import pandas as pd
 
 from confidence_shocks.config import Config
@@ -16,11 +17,15 @@ from confidence_shocks.features import COUNTS, METRICS, N_TEAMMATES, window_stat
 log = logging.getLogger(__name__)
 
 
-def _levels(df: pd.DataFrame, t: float, window: float) -> tuple[dict, dict]:
-    """Metric levels in the `window` minutes before and after clock time t."""
+def _levels(df: pd.DataFrame, t: float, window: float) -> tuple[dict, dict, dict]:
+    """Metric levels in three windows: two before clock time t, one after.
+
+    `prepre` is [t - 2w, t - w), used only by the placebo test.
+    """
+    prepre = window_stats(df[(df["clock"] >= t - 2 * window) & (df["clock"] < t - window)])
     before = window_stats(df[(df["clock"] >= t - window) & (df["clock"] < t)])
     after = window_stats(df[(df["clock"] > t) & (df["clock"] <= t + window)])
-    return before, after
+    return prepre, before, after
 
 
 def match_shocks(events: pd.DataFrame, spans: pd.DataFrame, window: float = 15.0) -> pd.DataFrame:
@@ -28,6 +33,8 @@ def match_shocks(events: pd.DataFrame, spans: pd.DataFrame, window: float = 15.0
 
     A shot is kept only if the shooter was on the pitch for the full window on both sides,
     so every row compares like with like. Penalties are excluded (a different kind of event).
+    The `*_prepre` columns (one window earlier still, for the placebo test) are NaN when the
+    shooter was not on the pitch for all of that earlier window.
     """
     spans = spans.drop_duplicates("player").set_index("player")
     shots = events[(events["type"] == "Shot") & (events["shot_type"] != "Penalty")]
@@ -41,8 +48,9 @@ def match_shocks(events: pd.DataFrame, spans: pd.DataFrame, window: float = 15.0
             continue
 
         team = events[events["team"] == shot.team]
-        own_pre, own_post = _levels(team[team["player"] == shot.player], shot.clock, window)
-        mates_pre, mates_post = _levels(team[team["player"] != shot.player], shot.clock, window)
+        own = _levels(team[team["player"] == shot.player], shot.clock, window)
+        mates = _levels(team[team["player"] != shot.player], shot.clock, window)
+        has_prepre = shot.clock - 2 * window >= on
 
         row = {
             "match_id": shot.match_id,
@@ -58,10 +66,12 @@ def match_shocks(events: pd.DataFrame, spans: pd.DataFrame, window: float = 15.0
         }
         for metric in METRICS:
             scale = N_TEAMMATES if metric in COUNTS else 1  # pooled count -> per teammate
-            row[f"{metric}_pre"] = own_pre[metric]
-            row[f"{metric}_post"] = own_post[metric]
-            row[f"{metric}_mates_pre"] = mates_pre[metric] / scale
-            row[f"{metric}_mates_post"] = mates_post[metric] / scale
+            for i, window_name in enumerate(("prepre", "pre", "post")):
+                missing = window_name == "prepre" and not has_prepre
+                row[f"{metric}_{window_name}"] = np.nan if missing else own[i][metric]
+                row[f"{metric}_mates_{window_name}"] = (
+                    np.nan if missing else mates[i][metric] / scale
+                )
         rows.append(row)
     return pd.DataFrame(rows)
 
