@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below. The match data belongs to its providers; see data/README.md."
+title: "confidence-shocks: measuring how a soccer player's game changes after confidence shocks"
+type: software
+authors:
+  - family-names: Hikino
+    given-names: Kaito N.
+version: 0.1.0
+date-released: 2026-11-12
+license: MIT

@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data: never commit third-party data. Scripts fetch it; data/README.md documents it.
+data/raw/*
+data/interim/*
+data/processed/*
+!data/**/.gitkeep
+# data/external/ holds small files made by hand (e.g. ID crosswalks) and IS committed.
+
+# Generated outputs. Commit a figure deliberately with `git add -f` when it goes in the README.
+reports/*
+!reports/.gitkeep
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

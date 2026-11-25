@@ -1,0 +1,16 @@
+# Main analysis config: the full league seasons in StatsBomb's free data.
+# Run `make audit CONFIG=configs/leagues_2015_16.yaml` first and check the match counts.
+# A full season is 380 matches (306 for the Bundesliga). If a league shows far fewer,
+# the free data only covers one club there: delete that entry.
+name: leagues_2015_16
+competitions:
+  - { name: "La Liga", season: "2015/2016" }
+  - { name: "Premier League", season: "2015/2016" }
+  - { name: "Serie A", season: "2015/2016" }
+  - { name: "Ligue 1", season: "2015/2016" }
+  - { name: "1. Bundesliga", season: "2015/2016" }
+
+window_minutes: 15
+controls: on_target
+n_boot: 2000
+seed: 0
