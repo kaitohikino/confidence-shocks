@@ -1,6 +1,6 @@
 # confidence-shocks
 
-[![CI](https://github.com/YOUR-USERNAME/confidence-shocks/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR-USERNAME/confidence-shocks/actions/workflows/ci.yml)
+[![CI](https://github.com/kaitohikino/confidence-shocks/actions/workflows/ci.yml/badge.svg)](https://github.com/kaitohikino/confidence-shocks/actions/workflows/ci.yml)
 
 **Does a soccer player's game change after something that should move his confidence, and which parts of it move most?**
 
@@ -23,7 +23,7 @@ None yet. This section will hold the headline figure and a three-sentence summar
 Requires [uv](https://docs.astral.sh/uv/).
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/confidence-shocks.git
+git clone https://github.com/kaitohikino/confidence-shocks.git
 cd confidence-shocks
 make setup      # install dependencies and git hooks
 make test       # runs on synthetic data, no download needed
